@@ -1,0 +1,1 @@
+export const BaseUrl = 'https://payments-test.stop-zaim.ru/public_html'

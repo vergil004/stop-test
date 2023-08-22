@@ -1,16 +1,18 @@
 <template>
-  <payments-app></payments-app>
+  <div class="container">
+    <payments-app></payments-app>
+  </div>
 </template>
 
 <script>
 import PaymentsApp from "@/components/PaymentsApp";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    PaymentsApp
-  }
-}
+    PaymentsApp,
+  },
+};
 </script>
 
 <style>
