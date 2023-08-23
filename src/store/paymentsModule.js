@@ -7,6 +7,7 @@ export const paymentsModule = {
     payments: [],
     isLoading: true,
     paymentsTypes: [],
+    paymentsStatuses: [],
   }),
   mutations: {
     setLoading(state, isLoading) {
@@ -17,6 +18,9 @@ export const paymentsModule = {
     },
     setPaymentsTypes(state, types) {
       state.paymentsTypes = types;
+    },
+    setPaymentsStatuses(state, statuses) {
+      state.paymentsStatuses = statuses;
     },
   },
   actions: {
@@ -43,6 +47,14 @@ export const paymentsModule = {
       try {
         const response = await axios.get(`${BaseUrl}/form_tss`);
         commit("setPaymentsTypes", response.data.types);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async getPaymentsStatuses({ commit }) {
+      try {
+        const response = await axios.get(`${BaseUrl}/form_tss`);
+        commit("setPaymentsStatuses", response.data.statuses);
       } catch (error) {
         console.log(error);
       }

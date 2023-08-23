@@ -2,7 +2,9 @@
   <div class="payments">
     <h4 class="h4">Список платежей</h4>
     <div class="payments__button">
-      <button class="btn btn-primary">Добавить платеж</button>
+      <button class="btn btn-primary" @click="openModal">
+        Добавить платеж
+      </button>
     </div>
     <div class="payments__filter">
       <div class="payments__filterItem">
@@ -68,6 +70,16 @@
         </tr>
       </tbody>
     </table>
+    <Transition name="fade">
+      <modal-app v-model:show="showModal">
+        <template v-slot:header>
+          <h5 class="h5">Добавление нового платежа</h5>
+        </template>
+        <template v-slot:body>
+          <AddPaymentForm />
+        </template>
+      </modal-app>
+    </Transition>
   </div>
 </template>
 
@@ -75,9 +87,14 @@
 import Datepicker from "vue3-datepicker";
 import sort from "../assets/img/icons/sort.svg";
 import { mapActions, mapState } from "vuex";
+import ModalApp from "@/components/ModalApp";
+import AddPaymentForm from "@/components/AddPaymentForm";
+
 export default {
   components: {
     Datepicker,
+    ModalApp,
+    AddPaymentForm,
   },
   data: () => ({
     icons: {
@@ -85,6 +102,7 @@ export default {
     },
     selectedSource: "all",
     selectedDate: null,
+    showModal: false,
   }),
   mounted() {
     this.getPayments({
@@ -92,6 +110,7 @@ export default {
       date: this.selectedDate,
     });
     this.getPaymentsTypes();
+    this.getPaymentsStatuses();
   },
   watch: {
     selectedSource(newValue) {
@@ -114,6 +133,7 @@ export default {
     ...mapActions({
       getPayments: "getPayments",
       getPaymentsTypes: "getPaymentsTypes",
+      getPaymentsStatuses: "getPaymentsStatuses",
     }),
     sourceIdTitle(id) {
       switch (id) {
@@ -139,6 +159,9 @@ export default {
     },
     statusIdTitle(id) {
       return id === 1 ? "Не оплачено" : id === 2 ? "Оплачено" : "Подтвержден";
+    },
+    openModal() {
+      this.showModal = true;
     },
   },
 };
@@ -197,5 +220,14 @@ export default {
       }
     }
   }
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
