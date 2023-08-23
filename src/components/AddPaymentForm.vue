@@ -1,17 +1,36 @@
 <template>
-  <form class="add-payment" novalidate="true">
+  <form class="add-payment" novalidate="true" @submit.prevent="submitForm">
     <div class="add-payment__cont">
       <div class="add-payment__item">
         <div class="add-payment__label"><sup>*</sup> Клиент</div>
-        <input type="text" v-model="form.client" />
+        <input
+          type="text"
+          v-model="client"
+          @blur="v$.client.$touch"
+          :class="{ invalid: v$.client.$dirty && v$.client.required.$invalid }"
+        />
       </div>
       <div class="add-payment__item">
         <div class="add-payment__label"><sup>*</sup> Договор №</div>
-        <input type="text" v-model="form.contract" />
+        <input
+          type="text"
+          v-model="contract"
+          @blur="v$.contract.$touch"
+          :class="{
+            invalid: v$.contract.$dirty && v$.contract.required.$invalid,
+          }"
+        />
       </div>
       <div class="add-payment__item">
         <div class="add-payment__label"><sup>*</sup> Тип Оплаты</div>
-        <select name="type" id="type" v-model="form.type" class="form-select">
+        <select
+          name="type"
+          id="type"
+          v-model="type"
+          class="form-select"
+          @blur="v$.type.$touch"
+          :class="{ invalid: v$.type.$dirty && v$.type.required.$invalid }"
+        >
           <option value="Не выбрано" selected>Не выбрано</option>
           <option v-for="type in types" :key="type.id" :value="type.id">
             {{ type.title }}
@@ -20,21 +39,32 @@
       </div>
       <div class="add-payment__item">
         <div class="add-payment__label"><sup>*</sup> Дата Оплаты</div>
-        <datepicker v-model="form.date" typeable placeholder="гггг.мм.дд" />
+        <div :class="{ invalid: v$.date.$dirty && v$.date.required.$invalid }">
+          <datepicker v-model="date" typeable placeholder="гггг.мм.дд" />
+        </div>
       </div>
       <div class="add-payment__item">
         <div class="add-payment__label"><sup>*</sup> Сумма оплаты</div>
-        <input type="text" />
+        <input
+          type="text"
+          v-model="sum"
+          @blur="v$.sum.$touch"
+          :class="{ invalid: v$.sum.$dirty && v$.sum.required.$invalid }"
+        />
       </div>
       <div class="add-payment__item">
         <div class="add-payment__label"><sup>*</sup> Статус</div>
         <select
           name="status"
           id="status"
-          v-model="form.status"
+          v-model="statusForm"
           class="form-select"
+          @blur="v$.statusForm.$touch"
+          :class="{
+            invalid: v$.statusForm.$dirty && v$.statusForm.required.$invalid,
+          }"
         >
-          <option value="statuses[0].id" selected>
+          <option :value="statuses[0].id" selected>
             {{ statuses[0].title }}
           </option>
           <option
@@ -46,37 +76,107 @@
           </option>
         </select>
       </div>
+      <div class="add-payment__item">
+        <div class="add-payment__label"><sup>*</sup> Тип Источника</div>
+        <select
+          name="sources"
+          id="sources"
+          v-model="source"
+          class="form-select"
+          @blur="v$.source.$touch"
+          :class="{
+            invalid: v$.source.$dirty && v$.source.required.$invalid,
+          }"
+        >
+          <option value="Не выбрано" selected>Не выбрано</option>
+          <option v-for="item in sources" :key="item.id" :value="item.id">
+            {{ item.title }}
+          </option>
+        </select>
+      </div>
     </div>
     <div class="add-payment__control">
-      <button class="btn btn-secondary">Отменить</button>
-      <button class="btn btn-primary">Добавить оплату</button>
+      <button class="btn btn-secondary" @click="cancelForm">Отменить</button>
+      <button class="btn btn-primary" type="submit">Добавить оплату</button>
     </div>
   </form>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState, mapActions } from "vuex";
+import { useVuelidate } from "@vuelidate/core";
+import { required } from "@vuelidate/validators";
 import Datepicker from "vue3-datepicker";
 
 export default {
+  setup() {
+    return { v$: useVuelidate() };
+  },
+  props: {
+    show: {
+      type: Boolean,
+      default: false,
+    },
+  },
   components: {
     Datepicker,
   },
   data: () => ({
-    form: {
-      client: "",
-      contract: "",
-      type: "Не выбрано",
-      status: "Не оплачено",
-      date: null,
-      sum: "",
-    },
+    client: "",
+    contract: "",
+    type: "",
+    statusForm: "",
+    date: null,
+    sum: "",
+    source: "",
   }),
+  validations() {
+    return {
+      client: { required },
+      contract: { required },
+      type: { required },
+      statusForm: { required },
+      date: { required },
+      sum: { required },
+      source: { required },
+    };
+  },
   computed: {
     ...mapState({
       types: (state) => state.payments.paymentsTypes,
       statuses: (state) => state.payments.paymentsStatuses,
+      sources: (state) => state.payments.paymentsSources,
     }),
+  },
+  methods: {
+    ...mapActions({
+      setNewPayment: "setNewPayment",
+    }),
+    async submitForm() {
+      const result = await this.v$.$validate();
+      if (result) {
+        this.setNewPayment({
+          client: this.client,
+          contract: this.contract,
+          type: this.type,
+          status: this.statusForm,
+          date: this.date,
+          sum: this.sum,
+          source: this.source,
+        });
+        this.cancelForm();
+      }
+    },
+    cancelForm() {
+      this.client = "";
+      this.contract = "";
+      this.type = "";
+      this.statusForm = "";
+      this.date = null;
+      this.sum = "";
+      this.source = "";
+      this.$emit("update:show", false);
+    },
   },
 };
 </script>
@@ -110,6 +210,16 @@ export default {
       border-radius: 5px;
       border: 1px solid rgb(222, 226, 230);
       padding: 0 16px;
+    }
+    .invalid {
+      border-color: #f00;
+      ::v-deep {
+        .v3dp__input_wrapper {
+          input {
+            border-color: #f00;
+          }
+        }
+      }
     }
     select {
       width: 250px;

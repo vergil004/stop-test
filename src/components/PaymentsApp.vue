@@ -20,8 +20,8 @@
         <div class="payments__filterName">Источник платежа:</div>
         <select class="form-select" v-model="selectedSource">
           <option value="all" selected>Все источники</option>
-          <option v-for="type in types" :key="type.id" :value="type.id">
-            {{ type.title }}
+          <option v-for="item in sources" :key="item.id" :value="item.id">
+            {{ item.title }}
           </option>
         </select>
       </div>
@@ -51,7 +51,7 @@
         <tr v-for="payment in payments" :key="payment.id">
           <td>{{ payment.client }}</td>
           <td>{{ payment.contract }}</td>
-          <td>{{ payment.type_id }}</td>
+          <td>{{ typeIdTitle(payment.type_id) }}</td>
           <td>{{ payment.date }}</td>
           <td>{{ payment.summ }}</td>
           <td>{{ sourceIdTitle(payment.source_id) }}</td>
@@ -76,7 +76,7 @@
           <h5 class="h5">Добавление нового платежа</h5>
         </template>
         <template v-slot:body>
-          <AddPaymentForm />
+          <AddPaymentForm v-model:show="showModal" />
         </template>
       </modal-app>
     </Transition>
@@ -111,6 +111,7 @@ export default {
     });
     this.getPaymentsTypes();
     this.getPaymentsStatuses();
+    this.getPaymentsSources();
   },
   watch: {
     selectedSource(newValue) {
@@ -126,7 +127,7 @@ export default {
   computed: {
     ...mapState({
       payments: (state) => state.payments.payments,
-      types: (state) => state.payments.paymentsTypes,
+      sources: (state) => state.payments.paymentsSources,
     }),
   },
   methods: {
@@ -134,6 +135,7 @@ export default {
       getPayments: "getPayments",
       getPaymentsTypes: "getPaymentsTypes",
       getPaymentsStatuses: "getPaymentsStatuses",
+      getPaymentsSources: "getPaymentsSources",
     }),
     sourceIdTitle(id) {
       switch (id) {
@@ -142,6 +144,28 @@ export default {
         }
         case 2: {
           return "карта";
+        }
+        case 3: {
+          return "онлайн";
+        }
+        case 4: {
+          return "перевод";
+        }
+        case 5: {
+          return "зачет";
+        }
+        default: {
+          return "р/счет";
+        }
+      }
+    },
+    typeIdTitle(id) {
+      switch (id) {
+        case 1: {
+          return "Авансовый платеж";
+        }
+        case 2: {
+          return "Ежемесячный платеж";
         }
         case 3: {
           return "депозит";

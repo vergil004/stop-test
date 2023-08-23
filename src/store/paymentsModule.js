@@ -8,6 +8,7 @@ export const paymentsModule = {
     isLoading: true,
     paymentsTypes: [],
     paymentsStatuses: [],
+    paymentsSources: [],
   }),
   mutations: {
     setLoading(state, isLoading) {
@@ -21,6 +22,12 @@ export const paymentsModule = {
     },
     setPaymentsStatuses(state, statuses) {
       state.paymentsStatuses = statuses;
+    },
+    setPaymentsSources(state, source) {
+      state.paymentsSources = source;
+    },
+    addNewPayment(state, newPayment) {
+      state.payments = [...state.payments, { ...newPayment }];
     },
   },
   actions: {
@@ -55,6 +62,30 @@ export const paymentsModule = {
       try {
         const response = await axios.get(`${BaseUrl}/form_tss`);
         commit("setPaymentsStatuses", response.data.statuses);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async getPaymentsSources({ commit }) {
+      try {
+        const response = await axios.get(`${BaseUrl}/form_tss`);
+        commit("setPaymentsSources", response.data.sources);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async setNewPayment({ commit }, bodyRequest) {
+      try {
+        const response = await axios.post(`${BaseUrl}/payments`, {
+          client: bodyRequest.client,
+          contract: bodyRequest.contract,
+          type_id: bodyRequest.type,
+          date: format(bodyRequest.date, "yyyy-MM-dd"),
+          summ: bodyRequest.sum,
+          source_id: bodyRequest.source,
+          status_id: bodyRequest.status,
+        });
+        commit("addNewPayment", response.data);
       } catch (error) {
         console.log(error);
       }
